@@ -1,0 +1,229 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+// Abstract class for Smart Devices
+abstract class SmartDevice {
+    protected int deviceId;
+    protected String status;
+
+    public SmartDevice(int deviceId) {
+        this.deviceId = deviceId;
+        this.status = "off";
+    }
+
+    public abstract void turnOn();
+    public abstract void turnOff();
+    public abstract String getStatus();
+}
+
+// Light class extending SmartDevice
+class Light extends SmartDevice {
+    public Light(int deviceId) {
+        super(deviceId);
+    }
+
+    @Override
+    public void turnOn() {
+        this.status = "on";
+        System.out.println("Light " + deviceId + " turned on.");
+    }
+
+    @Override
+    public void turnOff() {
+        this.status = "off";
+        System.out.println("Light " + deviceId + " turned off.");
+    }
+
+    @Override
+    public String getStatus() {
+        return "Light " + deviceId + " is " + status + ".";
+    }
+}
+
+// Thermostat class extending SmartDevice
+class Thermostat extends SmartDevice {
+    private int temperature;
+
+    public Thermostat(int deviceId) {
+        super(deviceId);
+        this.temperature = 70;
+    }
+
+    @Override
+    public void turnOn() {
+        System.out.println("Thermostat " + deviceId + " is set to " + temperature + " degrees.");
+    }
+
+    @Override
+    public void turnOff() {
+        System.out.println("Thermostat " + deviceId + " turned off.");
+    }
+
+    public void setTemperature(int temperature) {
+        this.temperature = temperature;
+        System.out.println("Thermostat " + deviceId + " temperature set to " + temperature + " degrees.");
+    }
+
+    @Override
+    public String getStatus() {
+        return "Thermostat " + deviceId + " is set to " + temperature + " degrees.";
+    }
+}
+
+// DoorLock class extending SmartDevice
+class DoorLock extends SmartDevice {
+    public DoorLock(int deviceId) {
+        super(deviceId);
+    }
+
+    @Override
+    public void turnOn() {
+        this.status = "locked";
+        System.out.println("Door " + deviceId + " locked.");
+    }
+
+    @Override
+    public void turnOff() {
+        this.status = "unlocked";
+        System.out.println("Door " + deviceId + " unlocked.");
+    }
+
+    @Override
+    public String getStatus() {
+        return "Door " + deviceId + " is " + status + ".";
+    }
+}
+
+// Factory class for creating Smart Devices
+class SmartDeviceFactory {
+    public static SmartDevice createDevice(String deviceType, int deviceId) {
+        switch (deviceType.toLowerCase()) {
+            case "light":
+                return new Light(deviceId);
+            case "thermostat":
+                return new Thermostat(deviceId);
+            case "door":
+                return new DoorLock(deviceId);
+            default:
+                throw new IllegalArgumentException("Unknown device type: " + deviceType);
+        }
+    }
+}
+
+// Central hub class for managing devices, schedules, and triggers
+class SmartHomeHub {
+    private Map<Integer, SmartDevice> devices;
+    private List<Map<String, Object>> schedules;
+    private List<Map<String, String>> triggers;
+
+    public SmartHomeHub() {
+        devices = new HashMap<>();
+        schedules = new ArrayList<>();
+        triggers = new ArrayList<>();
+    }
+
+    public void addDevice(String deviceType, int deviceId) {
+        SmartDevice device = SmartDeviceFactory.createDevice(deviceType, deviceId);
+        devices.put(deviceId, device);
+    }
+
+    public void removeDevice(int deviceId) {
+        devices.remove(deviceId);
+    }
+
+    public void turnOn(int deviceId) {
+        SmartDevice device = devices.get(deviceId);
+        if (device != null) {
+            device.turnOn();
+        }
+    }
+
+    public void turnOff(int deviceId) {
+        SmartDevice device = devices.get(deviceId);
+        if (device != null) {
+            device.turnOff();
+        }
+    }
+
+    public void setSchedule(int deviceId, String time, String command) {
+        Map<String, Object> schedule = new HashMap<>();
+        schedule.put("device_id", deviceId);
+        schedule.put("time", time);
+        schedule.put("command", command);
+        schedules.add(schedule);
+    }
+
+    public void addTrigger(String condition, String action) {
+        Map<String, String> trigger = new HashMap<>();
+        trigger.put("condition", condition);
+        trigger.put("action", action);
+        triggers.add(trigger);
+    }
+
+    public String getStatus() {
+        StringBuilder statusReport = new StringBuilder();
+        for (SmartDevice device : devices.values()) {
+            statusReport.append(device.getStatus()).append("\n");
+        }
+        return statusReport.toString();
+    }
+
+    public void executeSchedules() {
+        // This would check the current time and execute the scheduled commands
+    }
+
+    public void executeTriggers() {
+        // This would check the conditions and execute the actions if conditions are met
+    }
+}
+
+// Proxy class for controlling access to devices
+class DeviceProxy {
+    private SmartDevice device;
+
+    public DeviceProxy(SmartDevice device) {
+        this.device = device;
+    }
+
+    public void turnOn() {
+        System.out.println("Proxy: Turning on device " + device.deviceId + ".");
+        device.turnOn();
+    }
+
+    public void turnOff() {
+        System.out.println("Proxy: Turning off device " + device.deviceId + ".");
+        device.turnOff();
+    }
+
+    public String getStatus() {
+        return device.getStatus();
+    }
+}
+
+// Main class to run the simulation
+public class Main {
+    public static void main(String[] args) {
+        SmartHomeHub hub = new SmartHomeHub();
+        hub.addDevice("light", 1);
+        hub.addDevice("thermostat", 2);
+        hub.addDevice("door", 3);
+
+        hub.turnOn(1);
+        hub.turnOn(2);
+        hub.turnOn(3);
+
+        System.out.println(hub.getStatus());
+
+        hub.setSchedule(2, "06:00", "turnOn");
+        hub.addTrigger("temperature > 75", "turnOff(1)");
+
+        // Example of using DeviceProxy
+        SmartDevice light = new Light(4);
+        DeviceProxy proxy = new DeviceProxy(light);
+        proxy.turnOn();
+        proxy.turnOff();
+        System.out.println(proxy.getStatus());
+    }
+}
